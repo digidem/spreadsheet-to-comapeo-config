@@ -4,6 +4,7 @@ import fs from "fs/promises";
 import path from "path";
 import dotenv from "dotenv";
 import { SheetData, debug } from "./sheetProcessors/common";
+import { processCategoriesFromFields } from "./sheetProcessors/categoriesProcessor";
 import { processFieldsSheet } from "./sheetProcessors/fieldsProcessor";
 import { processDetailsSheet } from "./sheetProcessors/detailsProcessor";
 import { processTranslationsSheet } from "./sheetProcessors/translationsProcessor";
@@ -29,13 +30,22 @@ async function fetchData(): Promise<SheetData> {
 
     const data: SheetData = {};
 
+    // First, process the Fields sheet to extract categories
+    const fieldsSheet = doc.sheetsByTitle['Fields'];
+    if (!fieldsSheet) {
+      throw new Error("Fields sheet not found");
+    }
+    await fieldsSheet.loadHeaderRow();
+    const fieldsRows = await fieldsSheet.getRows();
+    data.Categories = processCategoriesFromFields(fieldsRows);
+    console.log(`Extracted ${data.Categories.length} categories from Fields sheet`);
+
+    // Then process all sheets
     for (let i = 0; i < doc.sheetCount; i++) {
       const sheet = doc.sheetsByIndex[i];
       console.log(`Processing sheet ${i + 1}/${doc.sheetCount}: ${sheet.title}`);
 
       await sheet.loadHeaderRow();
-      // debug(`Header values for ${sheet.title}:`, sheet.headerValues);
-
       const rows = await sheet.getRows();
       console.log(`Fetched ${rows.length} rows from sheet: ${sheet.title}`);
 
