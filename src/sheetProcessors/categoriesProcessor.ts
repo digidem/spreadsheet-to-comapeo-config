@@ -37,13 +37,28 @@ const rgbToCssColor = (red: number, green: number, blue: number): string => {
 export async function processCategoriesFromFields(sheet: GoogleSpreadsheet.GoogleSpreadsheetWorksheet): Promise<CategoryData[]> {
   debug("Extracting categories from Fields sheet");
   const categories: CategoryData[] = [];
+  const categoryRows: number[] = [];
 
+  // First pass: identify rows with categories
+  await sheet.loadCells(`A1:A${sheet.rowCount}`);
   for (let rowIndex = 0; rowIndex < sheet.rowCount; rowIndex++) {
-    await sheet.loadCells();
     const cell = sheet.getCell(rowIndex, 0);
     const cleanedValue = cleanCell(cell.value?.toString() || "");
-    console.log('STYLE', cell.effectiveFormat?.backgroundColorStyle);
     if (cleanedValue !== "") {
+      categoryRows.push(rowIndex);
+    }
+  }
+
+  // Second pass: load and process only the identified category cells
+  if (categoryRows.length > 0) {
+    const rangesToLoad = categoryRows.map(row => `A${row + 1}`);
+    await sheet.loadCells(rangesToLoad.join(','));
+
+    for (const rowIndex of categoryRows) {
+      const cell = sheet.getCell(rowIndex, 0);
+      const cleanedValue = cleanCell(cell.value?.toString() || "");
+      console.log('STYLE', cell.effectiveFormat?.backgroundColorStyle);
+      
       const category: CategoryData = {
         name: slugify(cleanedValue, { lower: true }),
         color: protoToCssColor(cell.effectiveFormat?.backgroundColorStyle?.rgbColor || {}),
