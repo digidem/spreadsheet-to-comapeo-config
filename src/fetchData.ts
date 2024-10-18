@@ -34,7 +34,7 @@ async function fetchData(): Promise<SheetData> {
       console.log(`Processing sheet ${i + 1}/${doc.sheetCount}: ${sheet.title}`);
 
       await sheet.loadHeaderRow();
-      debug(`Header values for ${sheet.title}:`, sheet.headerValues);
+      // debug(`Header values for ${sheet.title}:`, sheet.headerValues);
 
       const rows = await sheet.getRows();
       console.log(`Fetched ${rows.length} rows from sheet: ${sheet.title}`);
