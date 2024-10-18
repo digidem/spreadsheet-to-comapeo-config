@@ -51,7 +51,7 @@ async function fetchData(): Promise<SheetData> {
 
       switch (sheet.title) {
         case 'Translations':
-          Object.assign(data, processTranslationsSheet(rows, sheet.headerValues));
+          Object.assign(data, processTranslationsSheet(rows, sheet.headerValues, data.Categories as string[]));
           break;
         case 'Fields':
           data[sheet.title] = processFieldsSheet(rows, data.Categories as string[]);

@@ -1,12 +1,13 @@
 import { RowData, SheetData, cleanCell, capitalizeFirstLetter, slugifyHeader, debug } from "./common";
 
-export function processTranslationsSheet(rows: any[], headerValues: string[]): SheetData {
+export function processTranslationsSheet(rows: any[], headerValues: string[], categories: string[]): SheetData {
   debug("Processing Translations sheet");
   const languages = headerValues.map(slugifyHeader);
-  const data: SheetData = { Translations: [], Categories: [] };
+  const data: SheetData = { Translations: [] };
 
   rows.forEach((row) => {
-    if (row._rawData[1] !== undefined && row._rawData[1].trim() !== '') {
+    const firstCell = row._rawData[0].trim().toLowerCase();
+    if (!categories.includes(firstCell)) {
       const rowData: RowData = {};
       row._rawData.forEach((cell: string, index: number) => {
         const cleanedCell = cleanCell(cell);
@@ -15,9 +16,7 @@ export function processTranslationsSheet(rows: any[], headerValues: string[]): S
       data.Translations.push(rowData);
       debug(`Processed translation: ${rowData[languages[0]]}`);
     } else {
-      const category = slugifyHeader(row._rawData[0]).toLowerCase();
-      data.Categories.push(category);
-      debug(`Created category: ${category}`);
+      debug(`Skipped category row: ${firstCell}`);
     }
   });
 
