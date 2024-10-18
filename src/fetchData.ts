@@ -51,11 +51,12 @@ async function fetchData(): Promise<SheetData> {
       const rows = await sheet.getRows();
       console.log(`Fetched ${rows.length} rows from sheet: ${sheet.title}`);
       const languages = sheet.headerValues.map((header) => slugify(header));
+      console.log('languages', languages)
       data[sheet.title] = rows.map((row) => {
         let rowData: RowData = {};
-        if (sheet.title === doc.sheetsByIndex[0].title) {
-          // Sheet 1
-          if (row._rawData[1] !== undefined) {
+        if (sheet.title === 'Translations') {
+          // Translations
+          if (row._rawData[1] !== undefined && row._rawData[1].trim() !== '') {
             row._rawData = row._rawData.map((cell: string) => {
               let cleanedCell = cell.replace(/\(.*?\)/g, "").trim();
               return cleanedCell.charAt(0).toUpperCase() + cleanedCell.slice(1);
@@ -75,8 +76,8 @@ async function fetchData(): Promise<SheetData> {
             (data["Categories"] as string[]).push(category);
             console.log(`Created category: ${category}`);
           }
-        } else if (sheet.title === doc.sheetsByIndex[1].title) {
-          // Sheet 2
+        } else if (sheet.title === 'Fields') {
+          // Fields
           row._rawData = row._rawData
             .map((cell: string) => cell.replace(/\(.*?\)/g, "").trim())
             .filter((cell: string) => cell.trim() !== "");
@@ -95,8 +96,8 @@ async function fetchData(): Promise<SheetData> {
               stringified: JSON.stringify(row._rawData.slice(1)),
             };
           }
-        } else if (sheet.title === doc.sheetsByIndex[2].title) {
-          // Sheet 3
+        } else if (sheet.title === 'Details') {
+          // Details
           row._rawData = row._rawData
             .map((cell: string) => cell.replace(/\(.*?\)/g, "").trim())
             .filter((cell: string) => cell !== "" && cell !== " ");
