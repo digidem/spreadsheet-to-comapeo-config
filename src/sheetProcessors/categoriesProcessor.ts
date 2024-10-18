@@ -1,34 +1,33 @@
-import { type RowData, cleanCell, debug } from "./common";
+import { cleanCell, debug } from "./common";
 import slugify from "slugify";
-import { GoogleSpreadsheetCell } from "google-spreadsheet";
+import { GoogleSpreadsheet } from "google-spreadsheet";
 
 interface CategoryData {
   name: string;
   color: string;
 }
 
-export function processCategoriesFromFields(rows: GoogleSpreadsheetCell[][]): CategoryData[] {
+export function processCategoriesFromFields(sheet: GoogleSpreadsheet.GoogleSpreadsheetWorksheet): CategoryData[] {
   debug("Extracting categories from Fields sheet");
   const categories: CategoryData[] = [];
 
-  rows.forEach((row) => {
-    const cleanedData = row._rawData.map(cleanCell).filter((cell: string) => cell !== "");
-    // const cleanedData = row.map(cell => cleanCell(cell.value?.toString() || "")).filter((cell: string) => cell !== "");
-    console.log('ROW', row._rawData[0]);
-    if (cleanedData.length === 1) {
-      const categoryName = cleanedData[0];
-      // const category: CategoryData = {
-      //   name: slugify(categoryName, { lower: true }),
-      //   color: row[0].effectiveFormat?.backgroundColor?.red ? 
-      //     `#${Math.floor(row[0].effectiveFormat.backgroundColor.red * 255).toString(16).padStart(2, '0')}${
-      //       Math.floor(row[0].effectiveFormat.backgroundColor.green * 255).toString(16).padStart(2, '0')}${
-      //       Math.floor(row[0].effectiveFormat.backgroundColor.blue * 255).toString(16).padStart(2, '0')}` : 
-      //     '#000000'
-      // };
+  for (let rowIndex = 0; rowIndex < sheet.rowCount; rowIndex++) {
+    const cell = sheet.getCell(rowIndex, 0);
+    const cleanedValue = cleanCell(cell.value?.toString() || "");
+    
+    if (cleanedValue !== "") {
+      const category: CategoryData = {
+        name: slugify(cleanedValue, { lower: true }),
+        color: cell.effectiveFormat?.backgroundColor ? 
+          `#${Math.floor(cell.effectiveFormat.backgroundColor.red * 255).toString(16).padStart(2, '0')}${
+            Math.floor(cell.effectiveFormat.backgroundColor.green * 255).toString(16).padStart(2, '0')}${
+            Math.floor(cell.effectiveFormat.backgroundColor.blue * 255).toString(16).padStart(2, '0')}` : 
+          '#000000'
+      };
       categories.push(category);
       debug(`Extracted category: ${category.name} with color: ${category.color}`);
     }
-  });
+  }
 
   return categories;
 }

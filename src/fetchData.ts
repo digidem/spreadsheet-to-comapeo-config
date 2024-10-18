@@ -37,7 +37,7 @@ async function fetchData(): Promise<SheetData> {
     }
     await fieldsSheet.loadHeaderRow();
     const fieldsRows = await fieldsSheet.getRows();
-    data.Categories = processCategoriesFromFields(fieldsRows);
+    data.Categories = processCategoriesFromFields(fieldsSheet);
     console.log(`Extracted ${data.Categories.length} categories from Fields sheet`);
 
     // Then process all sheets
@@ -46,6 +46,7 @@ async function fetchData(): Promise<SheetData> {
       console.log(`Processing sheet ${i + 1}/${doc.sheetCount}: ${sheet.title}`);
 
       await sheet.loadHeaderRow();
+      await sheet.loadCells();
       const rows = await sheet.getRows();
       console.log(`Fetched ${rows.length} rows from sheet: ${sheet.title}`);
 
@@ -54,7 +55,7 @@ async function fetchData(): Promise<SheetData> {
           Object.assign(data, processTranslationsSheet(rows, sheet.headerValues, data.Categories as string[]));
           break;
         case 'Fields':
-          data[sheet.title] = processFieldsSheet(rows, data.Categories as string[]);
+          data[sheet.title] = processFieldsSheet(sheet, data.Categories as string[]);
           break;
         case 'Details':
           data[sheet.title] = processDetailsSheet(rows);
