@@ -13,14 +13,15 @@ interface SheetData {
 }
 
 interface DetailData {
-  name: string;
-  category: string;
-  fields: string[];
+  field: string[];
+  type: string;
+  options: string[];
   stringified: string;
 }
 
 interface FieldData {
   name: string;
+  color: string;
   category: string;
   fields: string[];
 }
@@ -32,13 +33,16 @@ interface TranslationData {
 async function createConfigFiles(data: SheetData): Promise<string> {
   cleanData(data);
   const { Translations: translationsData, Categories: categories, Fields: fieldsData, Details: detailsData } = data;
+  console.log('Translations:', translationsData.slice(0, 5));
+  console.log('Fields:', fieldsData.slice(0, 5));
+  console.log('Details:', detailsData.slice(0, 5));
   const translationLanguages = Object.keys(translationsData[0]);
   validateDetailsData(detailsData);
   await generateFieldFile(detailsData, fieldsFolder);
 
-  const categoryColors = getCategoryColors(categories);
 
   for (const [index, translation] of translationsData.entries()) {
+    console.log("Created:", translation);
     console.log("Created:", translation["English"]);
     for (const language of translationLanguages) {
       const languageFolder = path.join(
@@ -52,8 +56,7 @@ async function createConfigFiles(data: SheetData): Promise<string> {
         language,
         languageFolder,
         index,
-        categories,
-        categoryColors
+        categories
       );
     }
   }
@@ -67,33 +70,24 @@ function cleanData(data: SheetData): void {
 }
 
 function validateDetailsData(detailsData: DetailData[]): void {
-  if (!detailsData[0]?.fields) {
+  if (!detailsData[0]?.field) {
     throw new Error("First field in Details sheet is missing or invalid.");
   }
-}
-
-function getCategoryColors(categories: string[]): Record<string, string> {
-  const predefinedColors = ["#00ff00", "#ff6d01", "#ff0000", "#b45f06", "#4a86e8", "#ffff00"];
-  return categories.reduce((acc, category, index) => {
-    acc[category] = index < predefinedColors.length
-      ? predefinedColors[index]
-      : `#${Math.floor(Math.random() * 16777215).toString(16)}`;
-    return acc;
-  }, {} as Record<string, string>);
 }
 
 async function generateFieldFile(detailsData: DetailData[], folder: string): Promise<void> {
   await fs.mkdir(folder, { recursive: true });
   for (const detail of detailsData) {
-    const lowerCaseField = detail.fields[0].toLowerCase();
+    console.log("Creating:", detail);
+    const lowerCaseField = detail.field[0].toLowerCase();
     const detailContent = {
       key: slugify(detail.name, { lower: true }),
-      type: detail.fields[0].toLowerCase(),
+      type: detail.field[0].toLowerCase(),
       label: detail.name,
-      placeholder: detail.fields[0].toLowerCase() === "text"
+      placeholder: detail.field[0].toLowerCase() === "text"
         ? `Descreva ${lowerCaseField}`
-        : `Selecione ${detail.fields[0].toLowerCase() === "select_one" ? "a opção" : "as opções"} de ${lowerCaseField}`,
-      ...(detail.fields[0].toLowerCase() !== "text" && { options: JSON.parse(detail.stringified).map((option: string) => option.charAt(0).toUpperCase() + option.slice(1).toLowerCase()) }),
+        : `Selecione ${detail.field[0].toLowerCase() === "select_one" ? "a opção" : "as opções"} de ${lowerCaseField}`,
+      ...(detail.field[0].toLowerCase() !== "text" && { options: JSON.parse(detail.stringified).map((option: string) => option.charAt(0).toUpperCase() + option.slice(1).toLowerCase()) }),
     };
     await fs.writeFile(
       path.join(folder, `${detailContent.key}.json`),
@@ -108,8 +102,7 @@ async function generatePresetFiles(
   language: string,
   folder: string,
   index: number,
-  categories: string[],
-  categoryColors: Record<string, string>
+  categories: string[]
 ): Promise<void> {
   const presetsFolder = path.join(folder, "presets");
   await fs.mkdir(presetsFolder, { recursive: true });
@@ -130,7 +123,7 @@ async function generatePresetFiles(
       const presetContent = {
         icon: slugifiedFieldName,
         sort: index,
-        color: categoryColors[slugify(field.category, { lower: true })] || "#000000",
+        color: field.color,
         fields: field.fields.map(f => slugify(f, { lower: true })),
         geometry: ["point", "line", "area"],
         tags: {
