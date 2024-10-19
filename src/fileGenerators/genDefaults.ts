@@ -1,6 +1,6 @@
 import fs from 'fs';
 import path from 'path';
-import { debug } from './utils'
+import { debug } from '../utils'
 
 const translationsFolder = path.join(process.cwd(), "translations");
 const defaultsPath = path.join(process.cwd(), "defaults.json");

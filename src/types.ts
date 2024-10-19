@@ -20,7 +20,7 @@ export interface TranslationData {
   [key: string]: string;
 }
 
-export interface CategoryData {
+export interface PresetCategoryData {
   name: string;
   color: string;
 }

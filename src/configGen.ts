@@ -2,22 +2,23 @@ import fs from "fs/promises";
 import path from "path";
 import type { SheetData } from "./types";
 import { debug, fieldsFolder, translationsFolder, cleanData, validateDetailsData, slugifyName } from "./utils";
-import { generateFieldFile } from "./fieldGenerator";
-import { generatePresetFiles } from "./presetGenerator";
+import { generateFieldFile } from "./fileGenerators/fieldGenerator";
+import { generatePresetFiles } from "./fileGenerators/presetGenerator";
 
 async function createConfigFiles(data: SheetData): Promise<string> {
   cleanData(data);
-  const { Translations: translationsData, Categories: categories, Fields: fieldsData, Details: detailsData } = data;
+  const { Translations: translationsData, PresetCategories: presetCategories, Categories: presetsData, Details: detailsData } = data;
+  debug('PresetCategories', presetCategories)
   debug('Translations:', translationsData.slice(0, 5));
-  debug('Fields:', fieldsData.slice(0, 5));
+  debug('Presets:', presetsData.slice(0, 5));
   debug('Details:', detailsData.slice(0, 5));
   const translationLanguages = Object.keys(translationsData[0]);
   validateDetailsData(detailsData);
   await generateFieldFile(detailsData, fieldsFolder);
-  const categoryNames = categories.map(category => category.name);
-  debug('Categories', categoryNames)
+  const presetCategoryNames = presetCategories.map(category => category.name);
+  debug('PresetCategories', presetCategoryNames)
   for (const [index, translation] of translationsData.entries()) {
-    if (!categoryNames.includes(slugifyName(translation["English"]))) {
+    if (!presetCategoryNames.includes(slugifyName(translation["English"]))) {
       debug("Created:", translation["English"]);
       for (const language of translationLanguages) {
         const languageFolder = path.join(
@@ -26,12 +27,12 @@ async function createConfigFiles(data: SheetData): Promise<string> {
         );
         await fs.mkdir(languageFolder, { recursive: true });
         await generatePresetFiles(
-          fieldsData,
+          presetsData,
           translation,
           language,
           languageFolder,
           index,
-          categories
+          presetCategories
         );
       }
     }

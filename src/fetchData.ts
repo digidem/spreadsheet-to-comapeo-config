@@ -4,9 +4,9 @@ import fs from "fs/promises";
 import path from "path";
 import dotenv from "dotenv";
 import { debug } from "./utils";
-import type { SheetData, CategoryData } from "./types";
-import { processCategoriesFromFields } from "./sheetProcessors/categoriesProcessor";
-import { processFieldsSheet } from "./sheetProcessors/fieldsProcessor";
+import type { SheetData, PresetCategoryData } from "./types";
+import { processCategoriesFromPresets } from "./sheetProcessors/presetCategoriesProcessor";
+import { processPresetsSheet } from "./sheetProcessors/presetsProcessor";
 import { processDetailsSheet } from "./sheetProcessors/detailsProcessor";
 import { processTranslationsSheet } from "./sheetProcessors/translationsProcessor";
 
@@ -31,14 +31,14 @@ async function fetchData(): Promise<SheetData> {
 
     const data: SheetData = {};
 
-    // First, process the Fields sheet to extract categories
-    const fieldsSheet = doc.sheetsByTitle['Fields'];
-    if (!fieldsSheet) {
-      throw new Error("Fields sheet not found");
+    // First, process the Categories sheet to extract presets
+    const presetsSheet = doc.sheetsByTitle['Categories'];
+    if (!presetsSheet) {
+      throw new Error("Categories sheet not found");
     }
-    await fieldsSheet.loadHeaderRow();
-    data.Categories = await processCategoriesFromFields(fieldsSheet) as CategoryData[];
-    console.log(`Extracted ${data.Categories.length} categories from Fields sheet`);
+    await presetsSheet.loadHeaderRow();
+    data.PresetCategories = await processCategoriesFromPresets(presetsSheet) as PresetCategoryData[];
+    console.log(`Extracted ${data.PresetCategories.length} preset categories from Categories sheet`);
 
     // Then process all sheets
     for (let i = 0; i < doc.sheetCount; i++) {
@@ -51,11 +51,11 @@ async function fetchData(): Promise<SheetData> {
       console.log(`Fetched ${rows.length} rows from sheet: ${sheet.title}`);
 
       switch (sheet.title) {
-        case 'Translations':
-          Object.assign(data, processTranslationsSheet(rows, sheet.headerValues, data.Categories as CategoryData[]));
+        case 'Category Translations':
+          Object.assign(data, processTranslationsSheet(rows, sheet.headerValues, data.PresetCategories as PresetCategoryData[]));
           break;
-        case 'Fields':
-          data[sheet.title] = await processFieldsSheet(sheet, data.Categories as CategoryData[]);
+        case 'Categories':
+          data[sheet.title] = await processPresetsSheet(sheet, data.PresetCategories as PresetCategoryData[]);
           break;
         case 'Details':
           data[sheet.title] = processDetailsSheet(rows);

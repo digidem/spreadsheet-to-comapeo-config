@@ -1,7 +1,7 @@
 import fs from "fs/promises";
 import path from "path";
-import type { FieldData, TranslationData } from "./types";
-import { slugifyName, debug } from "./utils";
+import type { FieldData, TranslationData } from "../types";
+import { slugifyName, debug } from "../utils";
 
 export async function generatePresetFiles(
   fieldsData: FieldData[],

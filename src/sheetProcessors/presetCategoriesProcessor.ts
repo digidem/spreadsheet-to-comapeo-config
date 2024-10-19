@@ -1,6 +1,6 @@
 import { cleanCell } from "./common";
 import { debug } from "../utils";
-import type { CategoryData } from "../types";
+import type { PresetCategoryData } from "../types";
 import type { GoogleSpreadsheetWorksheet, GoogleSpreadsheetRow } from "google-spreadsheet";
 import slugify from "slugify";
 
@@ -29,11 +29,11 @@ const rgbToCssColor = (red: number, green: number, blue: number): string => {
   return `#${rgbNumber.toString(16).padStart(6, '0')}`;
 };
 
-export async function processCategoriesFromFields(sheet: GoogleSpreadsheetWorksheet): Promise<CategoryData[]> {
-  debug("Extracting categories from Fields sheet");
-  const categories: CategoryData[] = [];
-  const fieldsRows = await sheet.getRows();
-  const categoryRows: number[] = fieldsRows.filter((row: GoogleSpreadsheetRow) => row._rawData.length < 2).map((row) => row._rowNumber);
+export async function processCategoriesFromPresets(sheet: GoogleSpreadsheetWorksheet): Promise<PresetCategoryData[]> {
+  debug("Extracting presets from Categories sheet");
+  const categories: PresetCategoryData[] = [];
+  const presetRows = await sheet.getRows();
+  const categoryRows: number[] = presetRows.filter((row: GoogleSpreadsheetRow) => row._rawData.length < 2).map((row) => row._rowNumber);
   debug('categoryRows', categoryRows);
   // First pass: identify rows with categories
   if (categoryRows.length > 0) {
@@ -49,7 +49,7 @@ export async function processCategoriesFromFields(sheet: GoogleSpreadsheetWorksh
       }
       const cleanedValue = cleanCell(cell.value?.toString() || "");
 
-      const category: CategoryData = {
+      const category: PresetCategoryData = {
         name: slugify(cleanedValue, { lower: true }),
         color: protoToCssColor(cell.effectiveFormat?.backgroundColorStyle?.rgbColor || {}),
       };

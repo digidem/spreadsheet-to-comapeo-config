@@ -1,7 +1,7 @@
 import fs from "fs/promises";
 import path from "path";
-import type { DetailData } from "./types";
-import { slugifyName } from "./utils";
+import type { DetailData } from "../types";
+import { slugifyName } from "../utils";
 
 export async function generateFieldFile(detailsData: DetailData[], folder: string): Promise<void> {
   await fs.mkdir(folder, { recursive: true });
