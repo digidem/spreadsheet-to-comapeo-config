@@ -1,6 +1,7 @@
 import { fetchData } from "./fetchData";
 import { setupDirectories } from "./setup";
 import { createConfigFiles } from "./configGen";
+import { debug } from './utils'
 import dotenv from "dotenv";
 
 dotenv.config();
@@ -21,9 +22,7 @@ async function generateConfigsFromSpreadsheet(): Promise<string | undefined> {
     return languageFolder;
   } catch (error) {
     console.error("Error fetching data:", error);
-    if (process.env.DEBUG === "true") {
-      console.debug("Error details:", error);
-    }
+    debug("Error details:", error);
   }
 }
 

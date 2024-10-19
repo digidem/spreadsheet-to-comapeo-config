@@ -1,5 +1,6 @@
 import fs from 'fs';
 import path from 'path';
+import { debug } from './utils'
 
 const translationsFolder = path.join(process.cwd(), "translations");
 const defaultsPath = path.join(process.cwd(), "defaults.json");
@@ -12,9 +13,7 @@ function processPresetsFolder(presetsFolder: string): void {
   
   fs.readdirSync(presetsFolder).forEach((file) => {
     const presetPath = path.join(presetsFolder, file);
-    if (process.env.DEBUG === "true") {
-      console.debug(`Reading preset file: ${presetPath}`);
-    }
+    debug(`Reading preset file: ${presetPath}`);
     const preset = JSON.parse(fs.readFileSync(presetPath, "utf8"));
     const presetName = path.parse(file).name;
 

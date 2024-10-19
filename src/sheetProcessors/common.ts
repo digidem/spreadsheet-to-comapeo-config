@@ -1,12 +1,5 @@
 import slugify from "slugify";
 
-export interface RowData {
-  [key: string]: string | string[];
-}
-
-export interface SheetData {
-  [key: string]: RowData[];
-}
 
 export function cleanCell(cell: string): string {
   // Remove text within parentheses and trim
@@ -19,10 +12,4 @@ export function capitalizeFirstLetter(str: string): string {
 
 export function slugifyHeader(header: string): string {
   return slugify(header);
-}
-
-export function debug(...args: any[]): void {
-  if (process.env.DEBUG === "true") {
-    console.debug(...args);
-  }
 }

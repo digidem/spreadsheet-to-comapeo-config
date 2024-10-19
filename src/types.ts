@@ -3,7 +3,7 @@ export interface SheetData {
 }
 
 export interface DetailData {
-  field: string[];
+  field: string;
   type: string;
   options: string[];
   stringified: string;
@@ -18,4 +18,13 @@ export interface FieldData {
 
 export interface TranslationData {
   [key: string]: string;
+}
+
+export interface CategoryData {
+  name: string;
+  color: string;
+}
+
+export interface RowData {
+  [key: string]: string | string[];
 }

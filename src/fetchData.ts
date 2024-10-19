@@ -3,7 +3,8 @@ import { getAuth } from "./auth";
 import fs from "fs/promises";
 import path from "path";
 import dotenv from "dotenv";
-import { SheetData, debug } from "./sheetProcessors/common";
+import { debug } from "./utils";
+import type { SheetData, CategoryData } from "./types";
 import { processCategoriesFromFields } from "./sheetProcessors/categoriesProcessor";
 import { processFieldsSheet } from "./sheetProcessors/fieldsProcessor";
 import { processDetailsSheet } from "./sheetProcessors/detailsProcessor";
@@ -36,8 +37,7 @@ async function fetchData(): Promise<SheetData> {
       throw new Error("Fields sheet not found");
     }
     await fieldsSheet.loadHeaderRow();
-    const fieldsRows = await fieldsSheet.getRows();
-    data.Categories = processCategoriesFromFields(fieldsSheet);
+    data.Categories = await processCategoriesFromFields(fieldsSheet) as CategoryData[];
     console.log(`Extracted ${data.Categories.length} categories from Fields sheet`);
 
     // Then process all sheets
@@ -52,10 +52,10 @@ async function fetchData(): Promise<SheetData> {
 
       switch (sheet.title) {
         case 'Translations':
-          Object.assign(data, processTranslationsSheet(rows, sheet.headerValues, data.Categories as string[]));
+          Object.assign(data, processTranslationsSheet(rows, sheet.headerValues, data.Categories as CategoryData[]));
           break;
         case 'Fields':
-          data[sheet.title] = processFieldsSheet(sheet, data.Categories as string[]);
+          data[sheet.title] = await processFieldsSheet(sheet, data.Categories as CategoryData[]);
           break;
         case 'Details':
           data[sheet.title] = processDetailsSheet(rows);
@@ -71,8 +71,8 @@ async function fetchData(): Promise<SheetData> {
     console.log("Data cached successfully.");
 
     return data;
-  } catch (error) {
-    console.error("Error fetching data:", error.toString());
+  } catch (error: unknown) {
+    console.error("Error fetching data:", error instanceof Error ? error.message : String(error));
     // Attempt to use cached data
     try {
       console.log("Using cached data due to fetch failure.");

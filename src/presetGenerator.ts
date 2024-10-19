@@ -1,6 +1,6 @@
 import fs from "fs/promises";
 import path from "path";
-import { FieldData, TranslationData } from "./types";
+import type { FieldData, TranslationData } from "./types";
 import { slugifyName, debug } from "./utils";
 
 export async function generatePresetFiles(
@@ -16,7 +16,7 @@ export async function generatePresetFiles(
 
   for (const field of fieldsData) {
     if (
-      field.name === translation["Portugues"] &&
+      field.name === translation["English"] &&
       !categories.includes(slugifyName(field.name)) &&
       field.fields.length > 0
     ) {

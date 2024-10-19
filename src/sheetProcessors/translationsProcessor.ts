@@ -1,5 +1,6 @@
-import { RowData, SheetData, cleanCell, capitalizeFirstLetter, slugifyHeader, debug } from "./common";
-
+import { cleanCell, capitalizeFirstLetter, slugifyHeader } from "./common";
+import { debug } from "../utils";
+import type { RowData, SheetData } from "../types";
 export function processTranslationsSheet(rows: any[], headerValues: string[], categories: string[]): SheetData {
   debug("Processing Translations sheet");
   const languages = headerValues.map(slugifyHeader);

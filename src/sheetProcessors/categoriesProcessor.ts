@@ -1,13 +1,8 @@
-import { cleanCell, debug } from "./common";
+import { cleanCell } from "./common";
+import { debug } from "../utils";
+import type { CategoryData } from "../types";
+import type { GoogleSpreadsheetWorksheet, GoogleSpreadsheetRow } from "google-spreadsheet";
 import slugify from "slugify";
-import { GoogleSpreadsheet } from "google-spreadsheet";
-
-interface CategoryData {
-  name: string;
-  color: string;
-}
-
-// ...
 
 interface RGBColor {
   red?: number;
@@ -34,38 +29,32 @@ const rgbToCssColor = (red: number, green: number, blue: number): string => {
   return `#${rgbNumber.toString(16).padStart(6, '0')}`;
 };
 
-export async function processCategoriesFromFields(sheet: GoogleSpreadsheet.GoogleSpreadsheetWorksheet): Promise<CategoryData[]> {
+export async function processCategoriesFromFields(sheet: GoogleSpreadsheetWorksheet): Promise<CategoryData[]> {
   debug("Extracting categories from Fields sheet");
   const categories: CategoryData[] = [];
-  const categoryRows: number[] = [];
-
+  const fieldsRows = await sheet.getRows();
+  const categoryRows: number[] = fieldsRows.filter((row: GoogleSpreadsheetRow) => row._rawData.length < 2).map((row) => row._rowNumber);
+  debug('categoryRows', categoryRows);
   // First pass: identify rows with categories
-  await sheet.loadCells(`A1:A${sheet.rowCount}`);
-  for (let rowIndex = 0; rowIndex < sheet.rowCount; rowIndex++) {
-    const cell = sheet.getCell(rowIndex, 0);
-    const cleanedValue = cleanCell(cell.value?.toString() || "");
-    if (cleanedValue !== "") {
-      categoryRows.push(rowIndex);
-    }
-  }
-
-  // Second pass: load and process only the identified category cells
   if (categoryRows.length > 0) {
-    const rangesToLoad = categoryRows.map(row => `A${row + 1}`);
-    await sheet.loadCells(rangesToLoad.join(','));
-
-    for (const rowIndex of categoryRows) {
-      const cell = sheet.getCell(rowIndex, 0);
+    const startRow = Math.min(...categoryRows);
+    const endRow = Math.max(...categoryRows);
+    const rangeToLoad = `A${startRow}:A${endRow}`;
+    await sheet.loadCells(rangeToLoad);
+    for (const rowNumber of categoryRows) {
+      const cell = sheet.getCell(rowNumber - 1, 0);
+      if (!cell.value) {
+        console.warn(`Cell at row ${rowNumber} is not loaded or empty`);
+        continue;
+      }
       const cleanedValue = cleanCell(cell.value?.toString() || "");
-      console.log('STYLE', cell.effectiveFormat?.backgroundColorStyle);
-      
+
       const category: CategoryData = {
         name: slugify(cleanedValue, { lower: true }),
         color: protoToCssColor(cell.effectiveFormat?.backgroundColorStyle?.rgbColor || {}),
       };
       categories.push(category);
       debug(`Extracted category: ${category.name} with color: ${category.color}`);
-      debug('--------------------------------------------------------------------')
     }
   }
 
